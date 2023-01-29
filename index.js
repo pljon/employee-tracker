@@ -6,17 +6,24 @@
 // Import inquirer
 // Optional: import asciiart-logo
 // import your database module
-const db = require("./db");
+const db = require('./db/index.js');
+const { prompt } = require('inquirer');
+const logo = require('asciiart-logo');
+const { findAllEmployees, findAllRoles, findAllDepartments, createDepartment } = require('./db/index.js');
 
 // Import console table for logging information on screen in table format
 require("console.table");
 
 // Call startup function
+init();
 
 // function: start up
-//    optional: display logo text using asciiart-logo
-//    call function to the main prompt for questions
-
+  // optional: display logo text using asciiart-logo
+  // call function to load main prompt for questions
+function init() {
+  console.log("Hello! And Welcome to the Employee Tracker App!");
+  loadMainPrompts();
+}
 
 // function - main prompt for questions
 // - Prompt with the list of choices
@@ -30,28 +37,111 @@ require("console.table");
 //      - in case of view roles, call the view roles function
 //      - in case of add role, call the add role function
 //      - in default, call function to quit
-//
-// OPTIONAL:
-//      - in case of update employee's manager, call the update employee manager function
-//      - in case of view employees by manager, call the view employees by manager function
-//      - in case of view employees by department, call the view employees by department function
-//      - in case of view utilized budget by department, call the function to view utilized budget by department
-//      - in case of remove department, call the remove department function
-//      - in case of remove role, call the remove role function
-//      - in case of remve employee, call the remove employee function
-//      - in default, call function to quit
+
+function loadMainPrompts() {
+  prompt([
+    {
+      type: 'list',
+      name: 'choice',
+      message: 'What would you like to do?',
+      choices: [
+        {
+          name: 'View all employees',
+          value: 'allEmployees'
+        },
+        {
+          name: 'View all roles',
+          value: 'allRoles'
+        },
+        {
+          name: 'View all departments',
+          value: 'allDepartments'
+        },
+        {
+          name: 'Add a department',
+          value: 'addDepartment'
+        },
+        {
+          name: 'Add a role',
+          value: 'addRole'
+        },
+        {
+          name: 'Add an employee',
+          value: 'addEmployee'
+        },
+        {
+          name: "Update an employee's role",
+          value: 'updateEmployeeRole'
+        },
+        {
+          name: 'Quit',
+          value: 'quit'
+        }
+      ]
+    }
+  ]).then(res => {
+    let choice = res.choice;
+    switch (choice) {
+      case 'allEmployees':
+        viewAllEmployees();
+        break;
+      case 'allRoles':
+        viewAllRoles();
+        break;
+      case 'allDepartments':
+        viewAllDepartments();
+        break;
+      case 'addDepartment':
+        addDepartment();
+        break;
+      case 'addRole':
+        addRole();
+        break;
+      case 'addEmployee':
+        addEmployee();
+        break;
+      case 'updateEmployeeRole':
+        updateEmployeeRole();
+        break;
+      default:
+        quit();
+    }
+  })
+};
 
 // function - View all employees
   // 1. call find all employees method on database object
   //    in .then callback, display returned data with console table method
   // 2. call function to load main prompt for questions
-  //
+
+function viewAllEmployees() {
+  db.findAllEmployees()
+    .then((results) => {
+      console.log('Results: ', results);
+      const [rows] = results;
+      let employees = rows;
+      console.log('\n');
+      console.table(employees);
+    })
+    .then(() => loadMainPrompts());
+};
 
 // function - View all roles
 // 1. call find all roles method on database object
 //    in .then callback, dispalay returned data with console table
 // 2. call function to load main prompt for questons
-//
+
+function viewAllRoles() {
+  db.findAllRoles()
+    .then((results) => {
+      console.log('Results: ', results);
+      const [rows] = results;
+      let roles = rows;
+      console.log('\n');
+      console.table(roles);
+    })
+    .then(() => loadMainPrompts());
+};
 
 // function - View all deparments
 //  1. call find all departments method on database object
