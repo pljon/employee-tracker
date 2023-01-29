@@ -147,22 +147,83 @@ function viewAllRoles() {
 //  1. call find all departments method on database object
 //      in .then call back, display returned data with console table
 //  2. call function to load main prompt for questions
-//
+
+function viewAllDepartments() {
+  db.findAllDepartments()
+    .then((results) => {
+      console.log('Results: ', results);
+      const [rows] = results;
+      let departments = rows;
+      console.log('\n');
+      console.table(departments);
+    })
+    .then(() => loadMainPrompts());
+};
 
 // Add a department
 //  1. prompt user for the name of the department
 //      in .then callback, call create department method on database object, passing the returned data as input argument
 //  2. call function to load main prompt for questions
-//
+
+function addDepartment() {
+  prompt([
+    {
+      type: 'input',
+      name: 'name',
+      message: 'What is the name of the department?'
+    }
+  ]).then(res => {
+    let departmentName = res;
+    db.createDepartment(departmentName)
+      .then(() => console.log(`Added ${departmentName.name} to the database`))
+      .then(() => loadMainPrompts());
+  })
+};
 
 // functon - Add a role
 //  **prompt for user to enter the role, the salary, and what department the role belongs to
-//  1. call find all departments method on database connection to get array of existing department records
-//      in .then call back, create array of objects with names and ids from returned data with .map() method
+//  1. call find all departments method on database connection to get array of existing department records in
+//  .then call back, create array of objects with names and ids from returned data with .map() method
 //  2. prompt user for title, salary, and department choosing from the list of departmernts created above
 //      in .then callback, call funcon to create role on database connection, passing returned data from prompt as input argument
 //  3. call function to load main prompt for questions
-//
+
+function addRole() {
+  db.findAllDepartments()
+    .then((results) => {;
+      const [rows] = results;
+      let departments = rows;
+      return departments;
+    }
+    ).then((departments) => {
+      prompt([
+        {
+          type: 'input',
+          name: 'title',
+          message: 'What is the title of the role?'
+        },
+        {
+          type: 'input',
+          name: 'salary',
+          message: 'What is the salary of the role?'
+        },
+        {
+          type: 'list',
+          name: 'department_id',
+          message: 'What department does the role belong to?',
+          choices: departments.map(department => ({
+            name: department.name,
+            value: department.id
+          }))
+        }
+      ]).then(res => {
+        let role = res;
+        db.createRole(role)
+          .then(() => console.log(`Added ${role.title} to the database`))
+          .then(() => loadMainPrompts());
+      })
+    })
+};
 
 // function - Add a new employee
 //  1. prompt for first_name and last_name
@@ -177,6 +238,73 @@ function viewAllRoles() {
 //      in .then callback, create an employee object with variables for first name, last name, role id, manager id
 //  6. call function to create employee on database connection, passing the employee object as input argument
 //      in .then callback, call function to load main prompt for questions
+
+function addEmployee() {
+  prompt([
+    {
+      type: 'input',
+      name: 'first_name',
+      message: 'What is the first name of the employee?'
+    },
+    {
+      type: 'input',
+      name: 'last_name',
+      message: 'What is the last name of the employee?'
+    }
+  ]).then(res => {
+    let firstName = res.first_name;
+    let lastName = res.last_name;
+    db.findAllRoles()
+      .then((results) => {
+        const [rows] = results;
+        let roles = rows;
+        return roles;
+      }).then((roles) => {
+        prompt([
+          {
+            type: 'list',
+            name: 'role_id',
+            message: 'What is the role of the employee?',
+            choices: roles.map(role => ({
+              name: role.title,
+              value: role.id
+            }))
+          }
+        ]).then(res => {
+          let roleId = res.role_id;
+          db.findAllEmployees()
+            .then((results) => {
+              const [rows] = results;
+              let employees = rows;
+              return employees;
+            }).then((employees) => {
+              prompt([
+                {
+                  type: 'list',
+                  name: 'manager_id',
+                  message: 'Who is the manager of the employee?',
+                  choices: employees.map(employee => ({
+                    name: `${employee.first_name} ${employee.last_name}`,
+                    value: employee.id
+                  }))
+                }
+              ]).then(res => {
+                let managerId = res.manager_id;
+                let employee = {
+                  first_name: firstName,
+                  last_name: lastName,
+                  role_id: roleId,
+                  manager_id: managerId
+                }
+                db.createEmployee(employee)
+                  .then(() => console.log(`Added ${firstName} ${lastName} to the database`))
+                  .then(() => loadMainPrompts());
+              })
+            })
+        })
+      })
+  })
+};
 
 // function - Update an employee's role
 //  1. call function to find all employees on database connection
